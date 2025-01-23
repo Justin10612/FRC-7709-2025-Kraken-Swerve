@@ -35,11 +35,6 @@ public class SwerveModule extends SubsystemBase {
   private final PIDController turningPidController;
   private final SimpleMotorFeedforward driveFeedForward;
 
-  private double turningPidOutput;
-  private double driveFeedForwardPutput;
-  private double driveOutput;
-
-
   public SwerveModule(int turningMotor_ID, int driveMotor_ID, int absolutedEncoder_ID, double offset) {
     turningMotor = new TalonFX(turningMotor_ID);
     driveMotor = new TalonFX(driveMotor_ID);
@@ -118,7 +113,6 @@ public class SwerveModule extends SubsystemBase {
       turningMotor.set(turningMotorOutput);
     // Drive motor
       double driveMotorOutput = driveFeedForward.calculate(speedMetersPerSecond)/12;
-      this.driveOutput = driveMotorOutput;
       driveMotor.set(driveMotorOutput);
   }
 

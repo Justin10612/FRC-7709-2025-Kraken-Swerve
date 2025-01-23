@@ -50,16 +50,16 @@ public class SwerveSubsystem extends SubsystemBase {
       SwerveConstants.leftFrontAbsolutedEncoder_ID,
       SwerveConstants.leftFrontOffset
             );
-    leftBack = new SwerveModule(
-      SwerveConstants.leftBackTurning_ID,
-      SwerveConstants.leftBackDrive_ID,
-      SwerveConstants.leftBackAbsolutedEncoder_ID,
-      SwerveConstants.leftBackOffset);
     rightFront = new SwerveModule(
       SwerveConstants.rightFrontTurning_ID,
       SwerveConstants.rightFrontDrive_ID,
       SwerveConstants.rightFrontAbsolutedEncoder_ID,
       SwerveConstants.rightFrontOffset);
+    leftBack = new SwerveModule(
+      SwerveConstants.leftBackTurning_ID,
+      SwerveConstants.leftBackDrive_ID,
+      SwerveConstants.leftBackAbsolutedEncoder_ID,
+      SwerveConstants.leftBackOffset);
     rightBack = new SwerveModule(
       SwerveConstants.rightBackTurning_ID,
       SwerveConstants.rightBackDrive_ID,
@@ -159,8 +159,8 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveModulePosition[] getModulesPosition() {
     return new SwerveModulePosition[]{
       leftFront.getPosition(),
-      leftBack.getPosition(),
       rightFront.getPosition(),
+      leftBack.getPosition(),
       rightBack.getPosition()
     };
   }
@@ -168,8 +168,8 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[]{
       leftFront.getState(),
-      leftBack.getState(),
       rightFront.getState(),
+      leftBack.getState(),
       rightBack.getState()
     };
   }
@@ -177,16 +177,16 @@ public class SwerveSubsystem extends SubsystemBase {
   public void setModouleStates(SwerveModuleState[] desiredStates) {
       SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.maxDriveSpeed_MeterPerSecond);
       leftFront.setState(desiredStates[0]);
-      leftBack.setState(desiredStates[1]);
-      rightFront.setState(desiredStates[2]);
+      rightFront.setState(desiredStates[1]);
+      leftBack.setState(desiredStates[2]);
       rightBack.setState(desiredStates[3]);
   }
 
   public void setModouleStates_Auto(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.maxDriveSpeed_MeterPerSecond);
     leftFront.setState(desiredStates[0]);
-    leftBack.setState(desiredStates[1]);
-    rightFront.setState(desiredStates[2]);
+    rightFront.setState(desiredStates[1]);
+    leftBack.setState(desiredStates[2]);
     rightBack.setState(desiredStates[3]);
 }
 
@@ -205,7 +205,7 @@ public class SwerveSubsystem extends SubsystemBase {
     ySpeed = ySpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     zSpeed = zSpeed * Math.toRadians(SwerveConstants.maxAngularVelocity_Angle);
     if(fieldOrient) {
-      state = SwerveConstants.swerveKineatics.toSwerveModuleStates(ChassisSpeeds.fromRobotRelativeSpeeds(xSpeed, ySpeed, zSpeed, getRotation()));//之後要處理MaxSpeedPerSecond跟MaxRadianPerSecond的問題
+      state = SwerveConstants.swerveKineatics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, zSpeed, getRotation()));//之後要處理MaxSpeedPerSecond跟MaxRadianPerSecond的問題
     }else{
       state = SwerveConstants.swerveKineatics.toSwerveModuleStates(new ChassisSpeeds(xSpeed, ySpeed, zSpeed));
     }
