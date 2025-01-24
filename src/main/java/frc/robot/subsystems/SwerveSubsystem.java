@@ -39,6 +39,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final Field2d field;
 
   private RobotConfig robotConfig;
+  private double zSpeed;
   
   /**
    * 
@@ -81,8 +82,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
      resetGyro();
      // All other subsystem initialization
-    // ...
-
+    // ...                                                              
     try{
       robotConfig = RobotConfig.fromGUISettings();
     } catch (Exception e) {
@@ -117,29 +117,6 @@ public class SwerveSubsystem extends SubsystemBase {
     // // Set up custom logging to add the current path to a field 2d widget
     // PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
-  }
-
-
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-    odometry.update(getRotation(), getModulesPosition());
-    field.setRobotPose(odometry.getPoseMeters());
-
-    SmartDashboard.putNumber("Swerve/leftFrontAbsolutePosion", leftFront.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/leftBackAbsolutePosion", leftBack.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/rightFrontAbsolutePosion", rightFront.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/rightBackAbsolutePosion", rightBack.getTurningPosition());
-
-    SmartDashboard.putNumber("Swerve/leftFrontTurningMotorPosition", leftFront.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/leftBackTurningMotorPosition", leftBack.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/rightFrontTurningMotorPosition", rightFront.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/rightBackTurningMotorPosition", rightBack.getTurningMotorPosition());
-    
-    SmartDashboard.putNumber("Swerve/leftFrontDrivingMotorPosition", leftFront.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/leftBackDrivingMotorPosition", leftBack.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/rightFrontDrivingMotorPosition", rightFront.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/rightBackDrivingMotorPosition", rightBack.getDrivePosition());
   }
 
 
@@ -204,6 +181,7 @@ public class SwerveSubsystem extends SubsystemBase {
     xSpeed = xSpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     ySpeed = ySpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     zSpeed = zSpeed * Math.toRadians(SwerveConstants.maxAngularVelocity_Angle);
+    this.zSpeed = zSpeed;
     if(fieldOrient) {
       state = SwerveConstants.swerveKineatics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, zSpeed, getRotation()));//之後要處理MaxSpeedPerSecond跟MaxRadianPerSecond的問題
     }else{
@@ -217,5 +195,28 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveModuleState[] states = SwerveConstants.swerveKineatics.toSwerveModuleStates(targetSpeeds);
 
     setModouleStates(states);
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+    odometry.update(getRotation(), getModulesPosition());
+    field.setRobotPose(odometry.getPoseMeters());
+
+    SmartDashboard.putNumber("Swerve/leftFrontAbsolutePosion", leftFront.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/leftBackAbsolutePosion", leftBack.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/rightFrontAbsolutePosion", rightFront.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/rightBackAbsolutePosion", rightBack.getTurningPosition());
+
+    SmartDashboard.putNumber("Swerve/leftFrontTurningMotorPosition", leftFront.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/leftBackTurningMotorPosition", leftBack.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/rightFrontTurningMotorPosition", rightFront.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/rightBackTurningMotorPosition", rightBack.getTurningMotorPosition());
+    
+    SmartDashboard.putNumber("Swerve/leftFrontDrivingMotorPosition", leftFront.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/leftBackDrivingMotorPosition", leftBack.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/rightFrontDrivingMotorPosition", rightFront.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/rightBackDrivingMotorPosition", rightBack.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/zSpeed", zSpeed);
   }
 }
