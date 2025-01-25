@@ -16,6 +16,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -63,8 +64,8 @@ public class RobotContainer {
 
     BooleanSupplier isSlowFunc = ()-> driverController.getHID().getLeftBumperButton();
 
-
     m_SwerveSubsystem.setDefaultCommand(new ManualDrive(m_SwerveSubsystem, xSpeedFunc, ySpeedFunc, zSpeedFunc, isSlowFunc));
+    driverController.x().whileTrue(Commands.runOnce(() -> m_SwerveSubsystem.resetGyro()));
   }
 
   /**

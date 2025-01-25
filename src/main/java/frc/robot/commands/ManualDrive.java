@@ -58,7 +58,7 @@ public class ManualDrive extends Command {
   public void execute() {
     this.xSpeed = -xSpeedFunc.getAsDouble();
     this.ySpeed = ySpeedFunc.getAsDouble();
-    this.zSpeed = -zSpeedFunc.getAsDouble();
+    zSpeed = -zSpeedFunc.getAsDouble();
 
     this.xSpeed = MathUtil.applyDeadband(this.xSpeed, OperatorConstants.kJoystickDeadBand);
     this.ySpeed = MathUtil.applyDeadband(this.ySpeed, OperatorConstants.kJoystickDeadBand);
@@ -84,7 +84,7 @@ public class ManualDrive extends Command {
     SmartDashboard.putNumber("ManualDrive/Yspeed", ySpeed);
     SmartDashboard.putNumber("ManualDrive/Zspeed", zSpeed);
 
-    m_SwerveSubsystem.drive(this.xSpeed, this.ySpeed, this.zSpeed,true);
+    m_SwerveSubsystem.drive(this.xSpeed, this.ySpeed, zSpeed,true);
   }
 
   // Called once the command ends or is interrupted.

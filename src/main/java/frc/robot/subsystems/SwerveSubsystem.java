@@ -39,6 +39,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final Field2d field;
 
   private RobotConfig robotConfig;
+  private double zSpeed;
   
   /**
    * 
@@ -81,8 +82,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
      resetGyro();
      // All other subsystem initialization
-    // ...
-
+    // ...                                                              
     try{
       robotConfig = RobotConfig.fromGUISettings();
     } catch (Exception e) {
@@ -121,7 +121,10 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
 
-  
+  public ChassisSpeeds getChassisSpeed() {
+    return SwerveConstants.swerveKineatics.toChassisSpeeds(getModuleStates());
+  }
+
 
   public Pose2d getRobotPose() {
     return field.getRobotPose();
@@ -192,6 +195,7 @@ public class SwerveSubsystem extends SubsystemBase {
     xSpeed = xSpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     ySpeed = ySpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     zSpeed = zSpeed * Math.toRadians(SwerveConstants.maxAngularVelocity_Angle);
+    this.zSpeed = zSpeed;
     if(fieldOrient) {
       state = SwerveConstants.swerveKineatics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, zSpeed, getRotation()));//之後要處理MaxSpeedPerSecond跟MaxRadianPerSecond的問題
     }else{
@@ -227,5 +231,6 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Swerve/leftBackDrivingMotorPosition", leftBack.getDrivePosition());
     SmartDashboard.putNumber("Swerve/rightFrontDrivingMotorPosition", rightFront.getDrivePosition());
     SmartDashboard.putNumber("Swerve/rightBackDrivingMotorPosition", rightBack.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/zSpeed", zSpeed);
   }
 }
