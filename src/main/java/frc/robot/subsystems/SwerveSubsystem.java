@@ -120,11 +120,18 @@ public class SwerveSubsystem extends SubsystemBase {
 
   }
 
-
-  public Pose2d getRobotPose() {
-    return field.getRobotPose();
+  // ================== Odometry ==================
+  // Reset odometry
+  public void setPose(Pose2d poses) {
+    odometry.resetPosition(getRotation(), getModulesPosition(), poses);
   }
 
+  // Get robot pose
+  public Pose2d getRobotPose() {
+    return odometry.getPoseMeters();
+  }
+
+  // ================== Gyro ==================
   // Reset gyro
   public void resetGyro() {
     gyro.reset();
@@ -135,6 +142,7 @@ public class SwerveSubsystem extends SubsystemBase {
     return gyro.getRotation2d();
   }
 
+  // ================== Module ==================
   // Get all module states
   public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[]{
@@ -178,31 +186,26 @@ public class SwerveSubsystem extends SubsystemBase {
     rightBack.setState(desiredStates[3]);
 }
 
-  
-
-  public void setPose(Pose2d poses) {
-    odometry.resetPosition(getRotation(), getModulesPosition(), poses);
-  }
-
 
   public void drive(double xSpeed, double ySpeed, double zSpeed, boolean fieldOrient) {
     SwerveModuleState[] state;
+    // Convert to m/s
     xSpeed = xSpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     ySpeed = ySpeed * SwerveConstants.maxDriveSpeed_MeterPerSecond;
     zSpeed = zSpeed * Math.toRadians(SwerveConstants.maxAngularVelocity_Angle);
-    this.zSpeed = zSpeed;
+    // Field Oriented Drive or not
     if(fieldOrient) {
       state = SwerveConstants.swerveKineatics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, zSpeed, getRotation()));//之後要處理MaxSpeedPerSecond跟MaxRadianPerSecond的問題
     }else{
       state = SwerveConstants.swerveKineatics.toSwerveModuleStates(new ChassisSpeeds(xSpeed, ySpeed, zSpeed));
     }
+    // Impl
     setModouleStates(state);
   } 
 
   public void autoDrive(ChassisSpeeds speeds) {
     ChassisSpeeds targetSpeeds = ChassisSpeeds.discretize(speeds, 0.01);
     SwerveModuleState[] states = SwerveConstants.swerveKineatics.toSwerveModuleStates(targetSpeeds);
-
     setModouleStates(states);
   }
 
