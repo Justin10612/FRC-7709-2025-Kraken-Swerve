@@ -89,29 +89,30 @@ public class SwerveSubsystem extends SubsystemBase {
       // Handle exception as needed
       e.printStackTrace();
     }
+
     // Configure AutoBuilder last
     AutoBuilder.configure(
-            this::getRobotPose, // Robot pose supplier
-            this::setPose, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getChassisSpeed, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            (speeds, feedforwards) -> autoDrive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                    new PIDConstants(SwerveConstants.pathingtheta_Kp, SwerveConstants.pathingtheta_Ki, SwerveConstants.pathingtheta_Kd), // Translation PID constants
-                    new PIDConstants(SwerveConstants.pathingMoving_Kp, SwerveConstants.pathingMoving_Ki, SwerveConstants.pathingMoving_Kd) // Rotation PID constants
-            ),
-            robotConfig, // The robot configuration
-            () -> {
-              // Boolean supplier that controls when the path will be mirrored for the red alliance
-              // This will flip the path being followed to the red side of the field.
-              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+      this::getRobotPose, // Robot pose supplier
+      this::setPose, // Method to reset odometry (will be called if your auto has a starting pose)
+      this::getChassisSpeed, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+      (speeds, feedforwards) -> autoDrive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+      new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+              new PIDConstants(SwerveConstants.pathingtheta_Kp, SwerveConstants.pathingtheta_Ki, SwerveConstants.pathingtheta_Kd), // Translation PID constants
+              new PIDConstants(SwerveConstants.pathingMoving_Kp, SwerveConstants.pathingMoving_Ki, SwerveConstants.pathingMoving_Kd) // Rotation PID constants
+      ),
+      robotConfig, // The robot configuration
+      () -> {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-              var alliance = DriverStation.getAlliance();
-              if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-              }
-              return false;
-            },
-            this // Reference to this subsystem to set requirements
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      },
+      this // Reference to this subsystem to set requirements
     );
 
     // // Set up custom logging to add the current path to a field 2d widget
@@ -120,51 +121,23 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
 
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-    odometry.update(getRotation(), getModulesPosition());
-    field.setRobotPose(odometry.getPoseMeters());
-
-    SmartDashboard.putNumber("Swerve/leftFrontAbsolutePosion", leftFront.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/leftBackAbsolutePosion", leftBack.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/rightFrontAbsolutePosion", rightFront.getTurningPosition());
-    SmartDashboard.putNumber("Swerve/rightBackAbsolutePosion", rightBack.getTurningPosition());
-
-    SmartDashboard.putNumber("Swerve/leftFrontTurningMotorPosition", leftFront.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/leftBackTurningMotorPosition", leftBack.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/rightFrontTurningMotorPosition", rightFront.getTurningMotorPosition());
-    SmartDashboard.putNumber("Swerve/rightBackTurningMotorPosition", rightBack.getTurningMotorPosition());
-    
-    SmartDashboard.putNumber("Swerve/leftFrontDrivingMotorPosition", leftFront.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/leftBackDrivingMotorPosition", leftBack.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/rightFrontDrivingMotorPosition", rightFront.getDrivePosition());
-    SmartDashboard.putNumber("Swerve/rightBackDrivingMotorPosition", rightBack.getDrivePosition());
-  }
-
-
-  public ChassisSpeeds getChassisSpeed() {
-    return SwerveConstants.swerveKineatics.toChassisSpeeds(getModuleStates());
-  }
-
+  
 
   public Pose2d getRobotPose() {
     return field.getRobotPose();
   }
 
+  // Reset gyro
+  public void resetGyro() {
+    gyro.reset();
+  }
+
+  // Get gyro readings 
   public Rotation2d getRotation() {
     return gyro.getRotation2d();
   }
 
-  public SwerveModulePosition[] getModulesPosition() {
-    return new SwerveModulePosition[]{
-      leftFront.getPosition(),
-      rightFront.getPosition(),
-      leftBack.getPosition(),
-      rightBack.getPosition()
-    };
-  }
-
+  // Get all module states
   public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[]{
       leftFront.getState(),
@@ -174,6 +147,22 @@ public class SwerveSubsystem extends SubsystemBase {
     };
   }
 
+  // Get all module position
+  public SwerveModulePosition[] getModulesPosition() {
+    return new SwerveModulePosition[]{
+      leftFront.getPosition(),
+      rightFront.getPosition(),
+      leftBack.getPosition(),
+      rightBack.getPosition()
+    };
+  }
+
+  // Get chassis speed from the module states
+  public ChassisSpeeds getChassisSpeed() {
+    return SwerveConstants.swerveKineatics.toChassisSpeeds(getModuleStates());
+  }
+
+  // Set the module states
   public void setModouleStates(SwerveModuleState[] desiredStates) {
       SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.maxDriveSpeed_MeterPerSecond);
       leftFront.setState(desiredStates[0]);
@@ -182,6 +171,7 @@ public class SwerveSubsystem extends SubsystemBase {
       rightBack.setState(desiredStates[3]);
   }
 
+  // Set module state for auto use
   public void setModouleStates_Auto(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.maxDriveSpeed_MeterPerSecond);
     leftFront.setState(desiredStates[0]);
@@ -190,9 +180,7 @@ public class SwerveSubsystem extends SubsystemBase {
     rightBack.setState(desiredStates[3]);
 }
 
-  public void resetGyro() {
-    gyro.reset();
-  }
+  
 
   public void setPose(Pose2d poses) {
     odometry.resetPosition(getRotation(), getModulesPosition(), poses);
@@ -217,5 +205,27 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveModuleState[] states = SwerveConstants.swerveKineatics.toSwerveModuleStates(targetSpeeds);
 
     setModouleStates(states);
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+    odometry.update(getRotation(), getModulesPosition());
+    field.setRobotPose(odometry.getPoseMeters());
+
+    SmartDashboard.putNumber("Swerve/leftFrontAbsolutePosion", leftFront.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/leftBackAbsolutePosion", leftBack.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/rightFrontAbsolutePosion", rightFront.getTurningPosition());
+    SmartDashboard.putNumber("Swerve/rightBackAbsolutePosion", rightBack.getTurningPosition());
+
+    SmartDashboard.putNumber("Swerve/leftFrontTurningMotorPosition", leftFront.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/leftBackTurningMotorPosition", leftBack.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/rightFrontTurningMotorPosition", rightFront.getTurningMotorPosition());
+    SmartDashboard.putNumber("Swerve/rightBackTurningMotorPosition", rightBack.getTurningMotorPosition());
+    
+    SmartDashboard.putNumber("Swerve/leftFrontDrivingMotorPosition", leftFront.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/leftBackDrivingMotorPosition", leftBack.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/rightFrontDrivingMotorPosition", rightFront.getDrivePosition());
+    SmartDashboard.putNumber("Swerve/rightBackDrivingMotorPosition", rightBack.getDrivePosition());
   }
 }

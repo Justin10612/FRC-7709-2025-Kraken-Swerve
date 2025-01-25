@@ -11,14 +11,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Constants.ModuleConstants;
 
 public class SwerveModule extends SubsystemBase {
@@ -50,73 +48,81 @@ public class SwerveModule extends SubsystemBase {
 
     driveFeedForward = new SimpleMotorFeedforward(ModuleConstants.driveFeedforward_Ks, ModuleConstants.driveFeedforward_Kv);
 
+    // Set motor direction
     turningConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     driveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
+    // Set encoder direction and offset
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    // cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = AbsoluteSensorDiscontinuityPoint.Unsigned_0To1;
     cancoderConfig.MagnetSensor.MagnetOffset = offset;
 
     turningMotor.getConfigurator().apply(turningConfig);
     driveMotor.getConfigurator().apply(driveConfig);
     absolutedEncoder.getConfigurator().apply(cancoderConfig);
 
-
+    // Set neutral mode
     turningMotor.setNeutralMode(NeutralModeValue.Brake);
     driveMotor.setNeutralMode(NeutralModeValue.Brake);
 
-    resetEncoder();
+    // Reset sensor position
+    resetDriveEncoder();
   }
 
-  public void resetEncoder() {
+  public void resetDriveEncoder() {
     driveMotor.setPosition(0);
   }
 
+  // Get the current state of the module
   public SwerveModuleState getState() {
     return new SwerveModuleState(getDriveVelocity(), Rotation2d.fromDegrees(getTurningAngle()));
   }
 
+  // Get the current position of the module
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(getDrivePosition(), Rotation2d.fromDegrees(getTurningAngle()));
   }
 
+  // Get the current velocity of the module
   public double getDriveVelocity() {
     return driveMotor.getVelocity().getValueAsDouble()*ModuleConstants.driveEncoderRot2Meter;
   }
 
+  // Get the current position of the module
   public double getDrivePosition() {
     return driveMotor.getPosition().getValueAsDouble();//*ModuleConstants.driveEncoderRot2Meter
   }
-
+  
+  // Get the current reading of the module encoder
   public double getTurningPosition() {
     return absolutedEncoder.getAbsolutePosition().getValueAsDouble();
   }
 
-  public double getTurningMotorPosition(){
-    return turningMotor.getPosition().getValueAsDouble();
-  }
-
+  // Get the current angle of the module
   public double getTurningAngle() {
     return absolutedEncoder.getAbsolutePosition().getValueAsDouble()*360;
   }
 
+  // Get the current position of the module encoder
+  public double getTurningMotorPosition(){
+    return turningMotor.getPosition().getValueAsDouble();
+  }
+
+  // Stop the module
   public void stopMotor() {
     driveMotor.set(0);
     turningMotor.set(0);
   }
 
   public void setState(SwerveModuleState state) {
+    state.optimize(getState().angle);
     // Turn Motor
-      double goalAngleDeg = Math.toDegrees(Constants.optimate(getState().angle.getRadians(), state.angle.getRadians(), state.speedMetersPerSecond)[0]);
-      double speedMetersPerSecond = Constants.optimate(getState().angle.getRadians(), state.angle.getRadians(), state.speedMetersPerSecond)[1];
-      double turningMotorOutput = turningPidController.calculate(getState().angle.getDegrees(), goalAngleDeg);
-      turningMotor.set(turningMotorOutput);
+    double goalAngle = state.angle.getDegrees(); // Degree
+    double turningMotorOutput = turningPidController.calculate(getState().angle.getDegrees(), goalAngle);
+    turningMotor.set(turningMotorOutput);
     // Drive motor
-      double driveMotorOutput = driveFeedForward.calculate(speedMetersPerSecond)/12;
-      driveMotor.set(driveMotorOutput);
+    double driveMotorOutput = driveFeedForward.calculate(state.speedMetersPerSecond)/12;
+    driveMotor.set(driveMotorOutput);
   }
-
-
 
   @Override
   public void periodic() {
