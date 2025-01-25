@@ -121,11 +121,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
 
-  public ChassisSpeeds getChassisSpeed() {
-    return SwerveConstants.swerveKineatics.toChassisSpeeds(getModuleStates());
-  }
-
-
   public Pose2d getRobotPose() {
     return field.getRobotPose();
   }
